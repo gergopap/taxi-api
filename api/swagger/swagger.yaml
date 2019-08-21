@@ -1,60 +1,146 @@
 swagger: "2.0"
 info:
   version: "0.0.1"
-  title: Hello World App
-# during dev, should point to your local machine
+  title: Taxi Api
 host: localhost:10010
-# basePath prefixes all resource paths 
 basePath: /
-# 
 schemes:
-  # tip: remove http to make production-grade
   - http
-  - https
-# format of bodies a client can send (Content-Type)
 consumes:
   - application/json
-# format of the responses to the client (Accepts)
 produces:
   - application/json
+securityDefinitions:
+  sessionId:
+    type: apiKey
+    in: header
+    name: "X-Session-ID"
 paths:
-  /hello:
-    # binds a127 app logic to a route
-    x-swagger-router-controller: hello_world
-    get:
-      description: Returns 'Hello' to the caller
-      # used as the method name of the controller
-      operationId: hello
+  /signup:
+    x-swagger-router-controller: user
+    post:
+      tags:
+      - user
+      description: "Creating new user"
+      operationId: signupUser
       parameters:
-        - name: name
-          in: query
-          description: The name of the person to whom to say hello
-          required: false
-          type: string
+        - name: "user"
+          in: body
+          description: "User object to be created"
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        "201":
+          description: "User created"
+          schema:
+            $ref: "#/definitions/User"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /login:
+    x-swagger-router-controller: user
+    post:
+      tags:
+      - user
+      description: "Logging in with user"
+      operationId: loginUser
+      parameters:
+        - name: "credentials"
+          in: body
+          description: "Check users username and password"
+          required: true
+          schema:
+            $ref: "#/definitions/Credentials"
       responses:
         "200":
           description: Success
           schema:
-            # a pointer to a definition
-            $ref: "#/definitions/HelloWorldResponse"
-        # responses may fall through to errors
+            $ref: "#/definitions/Session"
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /logout:
+    x-swagger-router-controller: user
+    get:
+      description: "Logging out with current user"
+      tags:
+      - user
+      operationId: logoutUser
+      parameters:
+      - name: "X-Session-ID"
+        in: header
+        required: true
+        type: "string"
+      security:
+        - sessionId: []
+      responses:
+        "200":
+          description: Success
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/ErrorResponse"
         default:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
   /swagger:
     x-swagger-pipe: swagger_raw
-# complex objects have schema definitions
 definitions:
-  HelloWorldResponse:
+  User:
+    properties: 
+      id:
+        type: "number"
+        description: "Number to identify user"
+        example: 97
+      username:
+        type: "string"
+        description: "Users chosen name"
+        example: "usrnm34"
+      email:
+        type: "string"
+        description: "Users email adress"
+        example: "user@gmail.com"
+      password:
+        type: "string"
+        description: "Users secret password"
+        example: "secret"
     required:
-      - message
+    - username
+    - email
+    - password
+  Credentials:
+    required:
+      - "username"
+      - "password"
     properties:
-      message:
-        type: string
+      username:
+        type: "string"
+        example: "usrnm344"
+      password:
+        type: "string"
+        example: "secret"
+  Session:
+    required:
+      - sessionID
+    properties:
+      sessionID:
+        type: "string"
+        example: 'htf546f64fd65gh'
+      expiresAfter:
+        type: "string"
+        format: "date-time"
+        description: "date when token expires"
   ErrorResponse:
     required:
       - message
     properties:
       message:
-        type: string
+        type: "string"

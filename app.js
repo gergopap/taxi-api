@@ -2,22 +2,31 @@
 
 var SwaggerExpress = require('swagger-express-mw');
 var app = require('express')();
-module.exports = app; // for testing
+const mongoose = require('mongoose');
 
-var config = {
-  appRoot: __dirname // required config
+const config = {
+  appRoot: __dirname,
 };
 
 SwaggerExpress.create(config, function(err, swaggerExpress) {
   if (err) { throw err; }
 
-  // install middleware
   swaggerExpress.register(app);
 
   var port = process.env.PORT || 10010;
   app.listen(port);
 
-  if (swaggerExpress.runner.swagger.paths['/hello']) {
-    console.log('try this:\ncurl http://127.0.0.1:' + port + '/hello?name=Scott');
-  }
+  app.use(swaggerExpress.runner.swaggerTools.swaggerUi());
+
+  var port = process.env.PORT || 10010;
+  app.listen(port);
+
+  mongoose.connect('mongodb://localhost/netflix', { useNewUrlParser: true });
+
+  let db = mongoose.connection;
+  db.on('error', console.error.bind(console, 'connection error:'));
+  db.once('open', function () {
+  });
 });
+
+module.exports = app;
