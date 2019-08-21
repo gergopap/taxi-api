@@ -40,30 +40,32 @@ function loginUser(req, res) {
 
 const loginAsync = async (req, res) => {
     const credentials = req.swagger.params['credentials'].value;
-    const user = await userdb.user.findOne({
-        "user.userName": credentials.userName
+    const currentUser = await userdb.user.findOne({
+        "user.username": credentials.userName
     });
-    if (user != null) {
-        if (user.user.password === credentials.password) {
+    if (currentUser) {
+        console.log(currentUser);
+        
+        if (currentUser.user.password === credentials.password) {
             let sessionId = await Math.floor(100000 + Math.random() * 900000);
             await session.session.insertMany({
                 "id": sessionId,
-                "userId": user.user.id
+                "userId": currentUser.user.id
             });
             if (sessionId) {
                 return res.status(200).json(sessionId);
             } else {
-                return res.status(400).send({
+                res.status(400).send({
                     Error: "Something went wrong!"
                 });
             }
         } else {
-            return res.status(400).send({
+            res.status(400).send({
                 Error: "Invalid username or password!2"
             });
         }
     } else {
-        return res.status(400).send({
+        res.status(400).send({
             Error: "Invalid username or password!3"
         });
     }

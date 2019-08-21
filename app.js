@@ -3,9 +3,11 @@
 var SwaggerExpress = require('swagger-express-mw');
 var app = require('express')();
 const mongoose = require('mongoose');
+const swaggerSecurity = require('./api/helpers/swagger_security.js');
 
 const config = {
   appRoot: __dirname,
+  swaggerSecurityHandlers: swaggerSecurity.swaggerSecurityHandlers
 };
 
 SwaggerExpress.create(config, function(err, swaggerExpress) {
