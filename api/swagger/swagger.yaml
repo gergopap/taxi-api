@@ -17,7 +17,7 @@ securityDefinitions:
     name: "X-Session-ID"
 paths:
   /signup:
-    x-swagger-router-controller: user
+    x-swagger-router-controller: userController
     post:
       tags:
       - user
@@ -40,7 +40,7 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
   /login:
-    x-swagger-router-controller: user
+    x-swagger-router-controller: userController
     post:
       tags:
       - user
@@ -67,7 +67,7 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
   /logout:
-    x-swagger-router-controller: user
+    x-swagger-router-controller: userController
     get:
       description: "Logging out with current user"
       tags:
