@@ -20,7 +20,7 @@ paths:
     x-swagger-router-controller: userController
     post:
       tags:
-      - user
+      - User
       description: "Creating new user"
       operationId: signupUser
       parameters:
@@ -43,7 +43,7 @@ paths:
     x-swagger-router-controller: userController
     post:
       tags:
-      - user
+      - User
       description: "Logging in with user"
       operationId: loginUser
       parameters:
@@ -71,7 +71,7 @@ paths:
     get:
       description: "Logging out with current user"
       tags:
-      - user
+      - User
       operationId: logoutUser
       parameters:
       - name: "X-Session-ID"
@@ -91,19 +91,174 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /cards:
+    x-swagger-router-controller: cardController
+    get:
+      description: List users all credit or debit cards
+      operationId: getCards
+      tags:
+      - Card
+      security:
+      - sessionId: []
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Card"
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse" 
+    post:
+      tags:
+      - Card
+      description: "Add new credit or debit card"
+      operationId: saveCard
+      security:
+      - sessionId: []
+      parameters:
+        - name: "card"
+          in: body
+          description: "Credit or debit card"
+          required: true
+          schema:
+            $ref: "#/definitions/Card"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/Card"
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      tags:
+      - Card
+      description: "Delete card"
+      operationId: deleteCard
+      security:
+      - sessionId: []
+      parameters:
+        - name: "id"
+          in: body
+          required: true
+          description: "Deleting the chosen card"
+          schema:
+            type: string
+      responses:
+        "200": 
+          description: "Card deleted"
+          schema: 
+            $ref: "#/definitions/Card"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    put:
+      tags:
+      - Card
+      description: "Update card"
+      operationId: updateCard
+      security:
+      - sessionId: []
+      parameters:
+        - name: "id"
+          in: body
+          required: true
+          description: "Update the chosen card"
+          schema:
+            type: string
+      responses:
+        "200": 
+          description: "Card updated"
+          schema: 
+            $ref: "#/definitions/Card"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /taxi:
+    x-swagger-router-controller: taxiController
+    post:
+      tags:
+      - Taxi
+      description: "Order new taxi to the users position"
+      operationId: orderTaxi
+      security:
+      - sessionId: []
+      parameters:
+        - name: "toHome"
+          in: header
+          description: "Order to home or to other place"
+          required: true
+          type: boolean
+        - name: "position"
+          in: body
+          description: "Users position"
+          required: false
+          schema:
+            $ref: "#/definitions/Position"
+      responses:
+        "200":
+          description: Success
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /taxi/history:
+    x-swagger-router-controller: taxiController
+    get:
+      tags:
+      - Taxi
+      description: "Order new taxi to the users position"
+      operationId: orderHistory
+      security:
+      - sessionId: []
+      responses:
+        "200":
+          description: Success
+          schema: 
+            $ref: "#/definitions/History"
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /swagger:
     x-swagger-pipe: swagger_raw
 definitions:
   User:
     properties: 
-      id:
-        type: "number"
-        description: "Number to identify user"
-        example: 97
       username:
         type: "string"
         description: "Users chosen name"
         example: "usrnm34"
+      firstname:
+        type: "string"
+        description: "Users given name"
+        example: "Elon"
+      lastname:
+        type: "string"
+        description: "Users family name"
+        example: "Musk"
       email:
         type: "string"
         description: "Users email adress"
@@ -112,10 +267,36 @@ definitions:
         type: "string"
         description: "Users secret password"
         example: "secret"
+      phone:
+        type: "string"
+        description: "Users phone number"
+        example: "+36703330000"
+      home:
+        type: "object"
+        description: "Users home adress"
+        properties:
+          postal:
+            type: "number"
+            description: "Users postal code"
+            example: "6720"
+          city:
+            type: "string"
+            description: "Users city"
+            example: "Szeged"
+          street:
+            type: "string"
+            description: "Users street"
+            example: "Kossuth Lajos sgt"
+          number:
+            type: "string"
+            description: "Users house number"
+            example: "67/b"
     required:
     - username
     - email
     - password
+    - phone
+    - home
   Credentials:
     required:
       - "username"
@@ -138,6 +319,60 @@ definitions:
         type: "string"
         format: "date-time"
         description: "date when token expires"
+  Card:
+    properties:
+      name: 
+        type: string
+        example: "First card"
+      number:
+        type: string
+        example: "113244224467876"
+      owner:
+        type: string
+        example: "User User"
+      expires:
+        type: string
+        example: "11/21"
+      security:
+        type: number
+        example: "236"
+    required:
+    - number
+    - owner
+    - expires
+    - security
+  Position:
+    properties:
+      postal:
+        type: "number"
+        description: "Users postal code"
+        example: "6720"
+      city:
+        type: "string"
+        description: "Users city"
+        example: "Szeged"
+      street:
+        type: "string"
+        description: "Users street"
+        example: "Kossuth Lajos sgt"
+      number:
+        type: "string"
+        description: "Users house number"
+        example: "67/b"
+  History:
+    properties:
+      city:
+        type: string
+        description: "Order city"
+        example: "Szeged"
+      date:
+        type: string
+        description: "Order date"
+        example: "2019.08.19."
+      company:
+        type: string
+        description: "Company name of the taxi"
+        example: "Radio Taxi."
   ErrorResponse:
     required:
       - message

@@ -1,7 +1,7 @@
 'use strict';
 
 const userdb = require('../helpers/models/userModel');
-const session = require('../helpers/models/sessionModel')
+const session = require('../helpers/models/sessionModel');
 
 function signupUser(req, res) {
     return signupAsync(req, res);
@@ -41,7 +41,7 @@ function loginUser(req, res) {
 const loginAsync = async (req, res) => {
     const credentials = req.swagger.params['credentials'].value;
     const currentUser = await userdb.user.findOne({
-        "user.username": credentials.userName
+        "user.username": credentials.username
     });
     if (currentUser) {
         console.log(currentUser);
