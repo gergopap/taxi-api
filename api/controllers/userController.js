@@ -2,6 +2,8 @@
 
 const userdb = require('../helpers/models/userModel');
 const session = require('../helpers/models/sessionModel');
+const errorHandler = require('../helpers/errorHandler/errorhandler');
+const { authError, requestError } = require('../helpers/errorHandler/errors');
 
 function signupUser(req, res) {
     return signupAsync(req, res);
@@ -9,29 +11,32 @@ function signupUser(req, res) {
 
 const signupAsync = async (req, res) => {
     let user = req.swagger.params['user'].value;
-    let newUser = await userdb.user.findOne({
-        "user.email": user.email
-    });
-    if (newUser) {
-        console.log(newUser)
-        return res.status(400).json({
-            Error: "User already exists!"
+    try {
+        const newUser = await userdb.user.findOne({
+            "user.email": user.email
         });
-    } else {
+        if (newUser) {
+            throw new requestError('User already exists');
+        }
         user.id = await userdb.user.count() + 1;
-        user.queue = [];
+        user.cards = [];
+        user.history = [];
+        user.favoritCompany = '';
         await userdb.user.insertMany({
             user
         });
+        delete user.password;
+        delete user.id;
+        delete user.cards;
+        delete user.history;
+        delete user.favoritCompany;
+        console.log(user)
+        res.status(201).json( user );
+    } catch (e) {
+        errorHandler(e, res);
+
     }
-    if (user.queue) {
-        user.password = '*****';
-        return res.status(201).json(user);
-    } else {
-        return res.status(400).json({
-            Error: "User already exists!"
-        });
-    }
+
 };
 
 function loginUser(req, res) {
@@ -40,34 +45,25 @@ function loginUser(req, res) {
 
 const loginAsync = async (req, res) => {
     const credentials = req.swagger.params['credentials'].value;
-    const currentUser = await userdb.user.findOne({
-        "user.username": credentials.username
-    });
-    if (currentUser) {
-        console.log(currentUser);
-        
-        if (currentUser.user.password === credentials.password) {
-            let sessionId = await Math.floor(100000 + Math.random() * 900000);
-            await session.session.insertMany({
-                "id": sessionId,
-                "userId": currentUser.user.id
-            });
-            if (sessionId) {
-                return res.status(200).json(sessionId);
-            } else {
-                res.status(400).send({
-                    Error: "Something went wrong!"
-                });
-            }
-        } else {
-            res.status(400).send({
-                Error: "Invalid username or password!2"
-            });
-        }
-    } else {
-        res.status(400).send({
-            Error: "Invalid username or password!3"
+    try {
+        const currentUser = await userdb.user.findOne({
+            "user.username": credentials.username
         });
+        if (!currentUser || currentUser.user.password !== credentials.password) {
+            throw new authError('Invalid username or password!');
+        }
+        let sessionId = await Math.floor(100000 + Math.random() * 900000);
+        await session.session.insertMany({
+            "id": sessionId,
+            "userId": currentUser.user.id
+        });
+        if (!sessionId) {
+            throw new authError('Something went wrong!');
+        }
+        return res.status(200).json( sessionId );
+    } catch (e) {
+        errorHandler(e, res);
+
     }
 };
 
@@ -76,22 +72,15 @@ function logoutUser(req, res) {
 }
 
 const logoutAsync = async (req, res) => {
-    let xSessionID = req.swagger.params['X-Session-ID'].value;
-    let sessionId = Number(xSessionID);
-    console.log('dfs')
-    await session.session.deleteOne({
-        "id": sessionId
-    }).then((result) => { //vagy deleteMany
-        console.log(result)
-        if (result) {
-            console.log(result)
-            return res.status(200);
-        } else {
-            return res.status(400).send({
-                Error: "Already logged out."
-            });
-        }
-    });
+    const userId = req.app.locals.userId;
+    try {
+        await session.session.deleteMany({
+            "userId": userId
+        });
+        res.status(200).json({ 'Logout': 'Success'});
+    } catch (e) {
+        errorHandler(e, res);
+    }
 };
 
 module.exports = {

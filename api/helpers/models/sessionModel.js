@@ -9,4 +9,4 @@ let session = mongoose.model('session', sessionSchema);
 
 module.exports = {
     session
-}
+};
