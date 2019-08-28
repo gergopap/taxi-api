@@ -114,8 +114,8 @@ paths:
             type: array
             items:
               $ref: "#/definitions/Card"
-        "401":
-          description: Unauthorized
+        "404":
+          description: User or users cards not found
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:
@@ -143,8 +143,12 @@ paths:
           description: Success
           schema:
             $ref: "#/definitions/Card"
-        "401":
-          description: Unauthorized
+        "400":
+          description: Invalid card data
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "404":
+          description: User not found
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:
@@ -172,6 +176,10 @@ paths:
           description: "Card deleted"
           schema: 
             $ref: "#/definitions/Card"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
         default:
           description: Error
           schema:
@@ -202,6 +210,14 @@ paths:
           description: "Card updated"
           schema: 
             $ref: "#/definitions/Card"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "400":
+          description: Invalid card data
+          schema:
+            $ref: "#/definitions/ErrorResponse"
         default:
           description: Error
           schema:
@@ -234,8 +250,12 @@ paths:
           description: Success
           schema:
             $ref: "#/definitions/Order"
-        "401":
-          description: Unauthorized
+        "400":
+          description: Position not avaliable
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "404":
+          description: User not found
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:
@@ -259,8 +279,8 @@ paths:
           description: Success
           schema: 
             $ref: "#/definitions/Order"
-        "401":
-          description: Unauthorized
+        "404":
+          description: Users history not found
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:
@@ -288,8 +308,8 @@ paths:
           description: Success
           schema: 
             type: string
-        "401":
-          description: Unauthorized
+        "404":
+          description: Company not found
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:

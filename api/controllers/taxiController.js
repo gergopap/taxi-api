@@ -4,7 +4,7 @@ const userdb = require("../helpers/models/userModel");
 const companys = require("../helpers/models/companyModel");
 const orderdb = require('../helpers/models/orderModel');
 const errorHandler = require("../helpers/errorHandler/errorhandler");
-const { notFoundError } = require('../helpers/errorHandler/errors');
+const { notFoundError, requestError } = require('../helpers/errorHandler/errors');
 
 function orderTaxi(req, res) {
   return orderTaxiAsync(req, res);
@@ -18,7 +18,7 @@ const orderTaxiAsync = async (req, res) => {
     const localcompanies = await companys.taxicompany.find({ "city": location });
 
     if (!localcompanies) {
-      throw new notFoundError("Something went wrong");
+      throw new requestError("Your position is not accessible!");
     }
     order.date = new Date;
     for (let i = 0; i < localcompanies.length; i++) {
@@ -86,6 +86,10 @@ function updateFavorite(req, res) {
 const updateFavoriteAsync = async (req, res) => {
   const newFavorite = req.swagger.params["CompanyName"].value;
   try {
+    const favTaxiCompany = await companys.taxicompany.find({ "name": CompanyName });
+    if (!favTaxiCompany) {
+      throw new notFoundError('This company is not our partner');
+    }
     await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.favoritCompany": newFavorite } });
     res.status(200);
     res.json( newFavorite );
