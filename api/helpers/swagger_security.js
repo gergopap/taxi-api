@@ -1,4 +1,4 @@
-const session = require('./models/sessionModel');
+const session = require('./models/sessionModel'); 
 
 module.exports = {
   swaggerSecurityHandlers: {

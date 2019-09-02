@@ -1,4 +1,4 @@
-const { notFoundError, authError, requestError } = require('./errors');
+const { notFoundError, authError, requestError, serverError } = require('./errors');
 
 module.exports = function (err, res) {
   if (err instanceof notFoundError) {
@@ -10,6 +10,9 @@ module.exports = function (err, res) {
   }
   if (err instanceof requestError) {
     return handleReqErr(err, res);
+  }
+  if (err instanceof serverError) {
+    return handleOtherErr(err, res);
   }
   return handleOtherErr(err, res);
 };

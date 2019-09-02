@@ -1,8 +1,8 @@
 "use strict";
 
-const userdb = require("../helpers/models/userModel");
+const cardsdb = require("../helpers/models/cardsModel");
 const errorHandler = require("../helpers/errorHandler/errorhandler");
-const { requestError, notFoundError } = require('../helpers/errorHandler/errors');
+const { requestError, serverError, notFoundError } = require('../helpers/errorHandler/errors');
 
 function getCards(req, res) {
   return getCardsAsync(req, res);
@@ -10,14 +10,14 @@ function getCards(req, res) {
 
 const getCardsAsync = async (req, res) => {
   try {
-    const user = await userdb.user.findOne({
-      "user.id": req.app.locals.userId
+    const cards = await cardsdb.cards.findOne({
+      "userId": req.app.locals.userId
     });
-    const cards = user.user.cards;
-    if (!user) {
-      throw new notFoundError("Users cards not found");
+    if (!cards) {
+      throw new serverError("Users cards not found");
     }
-    res.status(200).json(cards);
+    console.log(cards.cards)
+    res.status(200).json(cards.cards);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -30,23 +30,30 @@ function saveCard(req, res) {
 const saveCardAsync = async (req, res) => {
   const card = req.swagger.params["cardData"].value;
   try {
-    if (card.number.length != 16 || card.security.length != 3 || card.expires.length != 5) {
+    if (card.number.length != 16 || card.security.length != 3 || card.expires.length != 5 || !card.number.match(/^-{0,1}\d+$/) || !card.security.match(/^-{0,1}\d+$/)) {
       throw new requestError("Invalid card data!");
     }
-    const user = await userdb.user.findOne({
-      "user.id": req.app.locals.userId
+    let cards = await cardsdb.cards.findOne({
+      "userId": req.app.locals.userId
     });
-    if (!user) {
-      throw new notFoundError("Something went wrong");
-    }
-    if (user.user.cards === []) {
-      user.user.cards = [card];
+    if (!cards) {
+      cards = {
+        userId: req.app.locals.userId,
+        cards: [card]
+      };
+      await cardsdb.cards.insertMany(cards);
     } else {
-      user.user.cards.push(card);
+      for (let i = 0; i < cards.cards.length; i++) {
+        if (card.number == cards.cards[i].number) {
+          throw new requestError("This card is already saved!");
+        }
+      }
+      cards.cards.push(card);
+      await cards.save();
     }
-    await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.cards": user.user.cards } });
+    const updatedCards = await cardsdb.cards.find({"userId": req.app.locals.userId});
     res.status(201);
-    res.json({ card });
+    res.json(updatedCards[0].cards);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -59,23 +66,30 @@ function deleteCard(req, res) {
 const deleteCardAsync = async (req, res) => {
   const cardNumber = req.swagger.params["cardNumber"].value;
   try {
-    const user = await userdb.user.findOne({
-      "user.id": req.app.locals.userId
+    let cards = await cardsdb.cards.findOne({
+      "userId": req.app.locals.userId
     });
-    if (!user) {
-      throw new notFoundError("Something went wrong");
+    if (!cards) {
+      throw new serverError("Users cards not found");
     }
-    let cards = user.user.cards;
 
-    for (let i = 0; i < cards.length; i++) {
-      if (cards[i].number == cardNumber) {
-        cards.splice(i, 1);
-      }
+    const checkCards = (card) => {
+      return card.number == cardNumber;
     }
-    user.user.cards = cards;
-    await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.cards": user.user.cards } });
+    let index = await cards.cards.findIndex(checkCards);
+
+    if (index == -1) {
+      throw new notFoundError("Card not found");
+    }
+
+    delete cards.cards[index];
+
+    const filteredCards = cards.cards.filter((card) => {
+      return card != null;
+    });
+    await cardsdb.cards.updateMany( {"userId": req.app.locals.userId}, {  $set: {"cards": filteredCards } } );
     res.status(200);
-    res.json(cards);
+    res.json(filteredCards);
   } catch (e) {
     errorHandler(e, res);
   }
@@ -89,24 +103,38 @@ const updateCardAsync = async (req, res) => {
   const cardNumber = req.swagger.params["cardNumber"].value;
   const newCard = req.swagger.params["newCardData"].value;
   try {
-    if (newCard.number.length != 16 || newCard.security.length != 3 || newCard.expires.length != 5) {
+    if (newCard.number.length != 16 || newCard.security.length != 3 || newCard.expires.length != 5 || !newCard.number.match(/^-{0,1}\d+$/) || !newCard.security.match(/^-{0,1}\d+$/)) {
+      console.log(newCard.number + newCard.security + newCard.expires);
       throw new requestError("Invalid card data!");
     }
-    const user = await userdb.user.findOne({
-      "user.id": req.app.locals.userId
+    let cards = await cardsdb.cards.findOne({
+      "userId": req.app.locals.userId
     });
-    if (!user) {
-      throw new notFoundError("Something went wrong");
+    if (!cards) {
+      throw new serverError("Something went wrong");
     }
-    let cards = user.user.cards;
 
-    for (let i = 0; i < cards.length; i++) {
-      if (cards[i].number == cardNumber) {
-        cards[i] = newCard;
-      }
+    const checkCards = (card) => {
+      return card.number == cardNumber;
     }
-    user.user.cards = cards;
-    await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.cards": user.user.cards } });
+    let index = cards.cards.findIndex(checkCards);
+
+    if (index == -1) {
+      throw new notFoundError("Card not found");
+    }
+
+    cards.cards[index] = newCard;
+
+    /* await cardsdb.cards.updateMany( {"userId": req.app.locals.userId}, {  $set: {"cards": filteredCards } } ); */
+    /* for (let i = 0; i < cards.cards.length; i++) {
+      if (cardNumber == cards.cards[i].number) {
+        cards.cards[i] = newCard;
+      } else {
+        throw new notFoundError("Card not found");
+      }
+    } */
+    /* await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.cards": user.user.cards } }); */
+    cards.save();
     res.status(200);
     res.json(newCard);
   } catch (e) {

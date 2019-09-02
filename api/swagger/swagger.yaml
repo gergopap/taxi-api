@@ -109,13 +109,13 @@ paths:
           type: "string"
       responses:
         "200":
-          description: Success
+          description: Cards listed
           schema:
             type: array
             items:
-              $ref: "#/definitions/Card"
-        "404":
-          description: User or users cards not found
+              $ref: "#/definitions/Cards"
+        "401":
+          description: Unauthorized
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:
@@ -140,15 +140,17 @@ paths:
             $ref: "#/definitions/Card"
       responses:
         "200":
-          description: Success
+          description: New card added
           schema:
-            $ref: "#/definitions/Card"
+            type: array
+            items:
+              $ref: "#/definitions/Card"
         "400":
           description: Invalid card data
           schema:
             $ref: "#/definitions/ErrorResponse"
-        "404":
-          description: User not found
+        "401":
+          description: Unauthorized
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:
@@ -176,10 +178,6 @@ paths:
           description: "Card deleted"
           schema: 
             $ref: "#/definitions/Card"
-        "404":
-          description: User not found
-          schema:
-            $ref: "#/definitions/ErrorResponse"
         default:
           description: Error
           schema:
@@ -195,7 +193,7 @@ paths:
           required: true
           type: "string"
         - name: "cardNumber"
-          description: "Updateable cards number"
+          description: "Card number of the card to update"
           in: header
           required: true
           type: "string"
@@ -210,10 +208,6 @@ paths:
           description: "Card updated"
           schema: 
             $ref: "#/definitions/Card"
-        "404":
-          description: User not found
-          schema:
-            $ref: "#/definitions/ErrorResponse"
         "400":
           description: Invalid card data
           schema:
@@ -222,29 +216,53 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
-  /taxi:
+  /taxi/position:
     x-swagger-router-controller: taxiController
     post:
       tags:
       - Taxi
-      description: "Order new taxi to the users position"
+      description: "Send users current position"
+      operationId: postPosition
+      parameters:
+        - name: "X-Session-ID"
+          in: header
+          required: true
+          type: "string"
+        - name: "position"
+          in: body
+          description: "Users position"
+          required: true
+          schema:
+            $ref: "#/definitions/Position"
+      responses:
+        "200":
+          description: Updated users current position, local taxi companys sent in an array
+          schema:
+            type: array
+            items:
+              type: string
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /taxi/order:
+    x-swagger-router-controller: taxiController
+    post:
+      tags:
+      - Taxi
+      description: "Order taxi users current position"
       operationId: orderTaxi
       parameters:
         - name: "X-Session-ID"
           in: header
           required: true
           type: "string"
-        - name: "toHome"
-          in: header
-          description: "Order to home or to other place"
-          required: true
-          type: boolean
-        - name: "position"
+        - name: "company"
           in: body
-          description: "Users position"
-          required: false
+          description: "Users chosen company"
+          required: true
           schema:
-            $ref: "#/definitions/Position"
+            $ref: "#/definitions/ChosenCompany"
       responses:
         "200":
           description: Success
@@ -252,10 +270,6 @@ paths:
             $ref: "#/definitions/Order"
         "400":
           description: Position not avaliable
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        "404":
-          description: User not found
           schema:
             $ref: "#/definitions/ErrorResponse"
         default:
@@ -267,7 +281,7 @@ paths:
     get:
       tags:
       - Taxi
-      description: "Order new taxi to the users position"
+      description: "Users order history"
       operationId: orderHistory
       parameters:
         - name: "X-Session-ID"
@@ -276,13 +290,9 @@ paths:
           type: "string"
       responses:
         "200":
-          description: Success
+          description: Order history listed
           schema: 
             $ref: "#/definitions/Order"
-        "404":
-          description: Users history not found
-          schema:
-            $ref: "#/definitions/ErrorResponse"
         default:
           description: Error
           schema:
@@ -305,13 +315,9 @@ paths:
           type: "string"
       responses:
         "200":
-          description: Success
+          description: Users favorite company updated
           schema: 
             type: string
-        "404":
-          description: Company not found
-          schema:
-            $ref: "#/definitions/ErrorResponse"
         default:
           description: Error
           schema:
@@ -320,6 +326,10 @@ paths:
     x-swagger-pipe: swagger_raw
 definitions:
   User:
+    required:
+      - "username"
+      - "email"
+      - "home"
     properties: 
       username:
         type: "string"
@@ -365,6 +375,7 @@ definitions:
             type: "string"
             description: "Users house number"
             example: "67/b"
+    #reqired:
   Credentials:
     required:
       - "username"
@@ -387,16 +398,27 @@ definitions:
         type: "string"
         format: "date-time"
         description: "date when token expires"
-  Card:
+  Cards:
     properties:
-      _id:
+      userId:
         type: string
+      cards:
+        type: array
+        items:
+          $ref: "#/definitions/Card"
+  Card:
+    required:
+      - "number"
+      - "owner"
+      - "expires"
+      - "security"
+    properties:
       name: 
         type: string
         example: "First card"
       number:
         type: string
-        example: "113244224467876"
+        example: "2222405343248877"
       owner:
         type: string
         example: "User User"
@@ -404,29 +426,42 @@ definitions:
         type: string
         example: "11/21"
       security:
-        type: number
-        example: 236
+        type: string
+        example: "236"
   Position:
+    required:
+      - "home"
     properties:
-      postal:
-        type: "number"
-        description: "Users postal code"
-        example: 6720
-      city:
-        type: "string"
-        description: "Users city"
-        example: "Szeged"
-      street:
-        type: "string"
-        description: "Users street"
-        example: "Kossuth Lajos sgt"
-      number:
-        type: "string"
-        description: "Users house number"
-        example: "67/b"
+      home:
+        type: "boolean"
+        description: "Is user at home, or not"
+      address:
+        type: object
+        properties:
+          postal:
+            type: "number"
+            description: "Users postal code"
+            example: 6720
+          city:
+            type: "string"
+            description: "Users city"
+            example: "Szeged"
+          street:
+            type: "string"
+            description: "Users street"
+            example: "Kossuth Lajos sgt"
+          number:
+            type: "string"
+            description: "Users house number"
+            example: "67/b"
   Order:
+    required:
+      - "address"
+      - "date"
+      - "company"
+      - "userId"
     properties:
-      adress:
+      address:
         type: object
         properties:
           postal:
@@ -450,13 +485,21 @@ definitions:
         description: "Order date"
         example: "2019.08.19."
       company:
-        type: object
+        type: string
         description: "Company of the taxi"
         example: "Radio Taxi"
       userId:
         type: number
         description: "Users id"
         example: 11
+  ChosenCompany:
+    properties:
+      favorite:
+        type: boolean
+        description: "User want to order from favorite, or other company"
+      companyName:
+        type: string
+        description: "Users chosen company from the list"
   ErrorResponse:
     required:
       - message

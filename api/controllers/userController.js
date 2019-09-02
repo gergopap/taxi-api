@@ -3,7 +3,7 @@
 const userdb = require('../helpers/models/userModel');
 const session = require('../helpers/models/sessionModel');
 const errorHandler = require('../helpers/errorHandler/errorhandler');
-const { authError, requestError } = require('../helpers/errorHandler/errors');
+const { authError, requestError, serverError } = require('../helpers/errorHandler/errors');
 
 function signupUser(req, res) {
     return signupAsync(req, res);
@@ -15,21 +15,22 @@ const signupAsync = async (req, res) => {
         const newUser = await userdb.user.findOne({
             "user.email": user.email
         });
-        if (newUser) {
+        const userName = await userdb.user.findOne({
+            "user.username": user.username
+        });
+        if (newUser || userName) {
             throw new requestError('User already exists');
         }
         user.id = await userdb.user.count() + 1;
-        user.cards = [];
-        user.history = [];
-        user.favoritCompany = '';
+        user.favoriteCompany = '';
+        user.currentLocation = {};
         await userdb.user.insertMany({
             user
         });
         delete user.password;
         delete user.id;
-        delete user.cards;
-        delete user.history;
-        delete user.favoritCompany;
+        delete user.favoriteCompany;
+        delete user.currentLocation;
         console.log(user)
         res.status(201).json( user );
     } catch (e) {
@@ -58,7 +59,7 @@ const loginAsync = async (req, res) => {
             "userId": currentUser.user.id
         });
         if (!sessionId) {
-            throw new authError('Something went wrong!');
+            throw new serverError('Something went wrong!');
         }
         return res.status(200).json( sessionId );
     } catch (e) {

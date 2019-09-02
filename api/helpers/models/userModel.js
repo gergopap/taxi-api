@@ -8,13 +8,6 @@ const userSchema = new mongoose.Schema({
         email: 'String',
         firstname: 'String',
         lastname: 'String',
-        cards: [{
-            name: 'String',
-            number: 'Number',
-            owner: 'string',
-            expires: 'string',
-            security: 'number'
-        }],
         phone: 'String',
         home: {
             postal: 'Number',
@@ -22,12 +15,13 @@ const userSchema = new mongoose.Schema({
             street: 'String',
             number: 'String'
           },
-        history: [{
-            adress: 'Object',
-            date: 'String',
-            company:'String'
-        }],
-        favoritCompany: 'String'
+        favoriteCompany: 'String',
+        currentLocation: {
+            postal: 'Number',
+            city: 'String',
+            street: 'String',
+            number: 'String'
+          }
     }
 },
 { collection : 'users' });
