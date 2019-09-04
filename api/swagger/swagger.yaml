@@ -250,7 +250,7 @@ paths:
     post:
       tags:
       - Taxi
-      description: "Order taxi users current position"
+      description: "Order taxi to users current position"
       operationId: orderTaxi
       parameters:
         - name: "X-Session-ID"
@@ -265,7 +265,7 @@ paths:
             $ref: "#/definitions/ChosenCompany"
       responses:
         "200":
-          description: Success
+          description: Taxi ordered
           schema:
             $ref: "#/definitions/Order"
         "400":
@@ -310,7 +310,7 @@ paths:
           required: true
           type: "string"
         - name: "CompanyName"
-          in: header
+          in: body
           required: true
           type: "string"
       responses:

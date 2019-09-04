@@ -20,7 +20,7 @@ SwaggerExpress.create(config, function(err, swaggerExpress) {
   var port = process.env.PORT || 10010;
   app.listen(port);
 
-  mongoose.connect('mongodb://localhost/taxidb', { useNewUrlParser: true });
+  mongoose.connect('mongodb://mongo/taxidb', { useNewUrlParser: true });
 
   let db = mongoose.connection;
   db.on('error', console.error.bind(console, 'connection error:'));

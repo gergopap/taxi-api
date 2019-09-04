@@ -16,7 +16,6 @@ const getCardsAsync = async (req, res) => {
     if (!cards) {
       throw new serverError("Users cards not found");
     }
-    console.log(cards.cards)
     res.status(200).json(cards.cards);
   } catch (e) {
     errorHandler(e, res);
@@ -125,15 +124,6 @@ const updateCardAsync = async (req, res) => {
 
     cards.cards[index] = newCard;
 
-    /* await cardsdb.cards.updateMany( {"userId": req.app.locals.userId}, {  $set: {"cards": filteredCards } } ); */
-    /* for (let i = 0; i < cards.cards.length; i++) {
-      if (cardNumber == cards.cards[i].number) {
-        cards.cards[i] = newCard;
-      } else {
-        throw new notFoundError("Card not found");
-      }
-    } */
-    /* await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.cards": user.user.cards } }); */
     cards.save();
     res.status(200);
     res.json(newCard);
