@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  version: "0.0.1"
+  version: "1.0.0"
   title: Taxi Api
 host: localhost:10010
 basePath: /
@@ -218,7 +218,7 @@ paths:
             $ref: "#/definitions/ErrorResponse"
   /taxi/position:
     x-swagger-router-controller: taxiController
-    post:
+    post: #put currentposition!!
       tags:
       - Taxi
       description: "Send users current position"
@@ -312,7 +312,8 @@ paths:
         - name: "CompanyName"
           in: body
           required: true
-          type: "string"
+          schema:
+            $ref: "#/definitions/CompanyName"
       responses:
         "200":
           description: Users favorite company updated
@@ -375,7 +376,6 @@ definitions:
             type: "string"
             description: "Users house number"
             example: "67/b"
-    #reqired:
   Credentials:
     required:
       - "username"
@@ -493,11 +493,18 @@ definitions:
         description: "Users id"
         example: 11
   ChosenCompany:
+    required:
+      - favorite
     properties:
       favorite:
         type: boolean
         description: "User want to order from favorite, or other company"
       companyName:
+        type: string
+        description: "Users chosen company from the list"
+  CompanyName:
+    properties:
+      CompanyName:
         type: string
         description: "Users chosen company from the list"
   ErrorResponse:

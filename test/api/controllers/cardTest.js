@@ -89,8 +89,6 @@ describe('cards coontroller test', function () {
         .end(async (err, res) => {
           const cards = await cardsdb.cards.find({});
 
-          expect(res.body.identifier).to.not.be.empty;
-          expect(res.body.licencePlate).to.equal(car.licencePlate);
           expect(res.body[1].number).to.equal(cards.cards[1].number);
           expect(res.body[1].name).to.equal(cards.cards[1].name);
           done();
@@ -99,7 +97,7 @@ describe('cards coontroller test', function () {
 
     it('should return error 400 when the card is already saved', async function (done) {
       request(app)
-        .post('/purchase')
+        .post('/cards')
         .set('Accept', 'application/json')
         .set('sessionID', sampleSession.id)
         .send(sampleCards.cards[0])
@@ -113,7 +111,7 @@ describe('cards coontroller test', function () {
 
     it('should retun error 400 when cards number, cards security number, or cards expire date not valid', async function (done) {
       request(app)
-        .post('/purchase')
+        .post('/cards')
         .set('Accept', 'application/json')
         .set('sessionID', sampleSession.id)
         .send(
@@ -132,4 +130,113 @@ describe('cards coontroller test', function () {
         });
     });
   });
+
+  describe('GET /cards', function () {
+    it('should list all of users saved cards', async function (done) {
+      request(app)
+        .get('/cards')
+        .set('Accept', 'application/json')
+        .set('sessionID', sampleSession.id)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(async (err, res) => {
+          const cards = await cardsdb.cards.find({});
+
+          expect(res.body).to.equal(cards.cards);
+          done();
+        });
+    });
+  });
+
+  describe('PUT /cards', function () {
+    it('should update one of users saved cards, ', async function (done) {
+      request(app)
+        .put('/cards')
+        .set('Accept', 'application/json')
+        .set('sessionID', sampleSession.id)
+        .set('cardNumber', sampleCards.cards[0].number)
+        .send(sampleCard)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(async (err, res) => {
+          const cards = await cardsdb.cards.find({});
+
+          expect(res.body.number).to.equal(cards.cards[0].number);
+          expect(res.body.name).to.equal(cards.cards[0].name);
+          done();
+        });
+    });
+
+    it('should return error 404 when the updateable card is not found', async function (done) {
+      request(app)
+        .put('/cards')
+        .set('Accept', 'application/json')
+        .set('sessionID', sampleSession.id)
+        .set('cardNumber', sampleCards.cards[0].number)
+        .send(sampleCards.cards[0])
+        .expect('Content-Type', /json/)
+        .expect(404)
+        .end(async (err, res) => {
+          expect(res.body.message).to.equal('Card not found');
+          done();
+        });
+    });
+
+    it('should retun error 400 when cards number, cards security number, or cards expire date not valid', async function (done) {
+      request(app)
+        .put('/cards')
+        .set('Accept', 'application/json')
+        .set('sessionID', sampleSession.id)
+        .set('cardNumber', sampleCards.cards[0].number)
+        .send(
+          {
+            "name": 'Card Two',
+            "number": 'A2l5678912345',
+            "owner": 'User User',
+            "expires": '03',
+            "security": 'asdasd'
+          })
+        .expect('Content-Type', /json/)
+        .expect(400)
+        .end(async (err, res) => {
+          expect(res.body.message).to.equal('Invalid card data!');
+          done();
+        });
+    });
+  });
+
+  describe('DELETE /cards', function () {
+    it('should update one of users saved cards, ', async function (done) {
+      request(app)
+        .delete('/cards')
+        .set('Accept', 'application/json')
+        .set('sessionID', sampleSession.id)
+        .send(sampleCards.cards[0].number)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(async (err, res) => {
+          const cards = await cardsdb.cards.find({});
+
+          expect(res.body.number).to.equal(cards.cards[0].number);
+          expect(res.body.name).to.equal(cards.cards[0].name);
+          done();
+        });
+    });
+
+    it('should return error 404 when the updateable card is not found', async function (done) {
+      request(app)
+        .delete('/cards')
+        .set('Accept', 'application/json')
+        .set('sessionID', sampleSession.id)
+        .send(sampleCards.cards[0].number)
+        .expect('Content-Type', /json/)
+        .expect(404)
+        .end(async (err, res) => {
+          expect(res.body.message).to.equal('Card not found');
+          done();
+        });
+    });
+  });
+
+
 });
