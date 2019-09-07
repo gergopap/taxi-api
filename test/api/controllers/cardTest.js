@@ -25,7 +25,7 @@ const sampleCard = {
   "security": '156'
 };
 
-sampleUser = {
+const sampleUser = {
   "user": {
     "id": 1,
     "username": 'User',
@@ -43,7 +43,7 @@ sampleUser = {
   }
 };
 
-sampleSession = {
+const sampleSession = {
   "id": '111111',
   "userId": 1
 };

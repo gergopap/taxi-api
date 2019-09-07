@@ -6,11 +6,11 @@ const orderdb = require('../helpers/models/orderModel');
 const errorHandler = require("../helpers/errorHandler/errorhandler");
 const { serverError, requestError } = require('../helpers/errorHandler/errors');
 
-function postPosition(req, res) {
-  return postPositionAsync(req, res);
+function updatePosition(req, res) {
+  return updatePositionAsync(req, res);
 }
 
-const postPositionAsync = async (req, res) => {
+const updatePositionAsync = async (req, res) => {
   const position = req.swagger.params["position"].value;
   const toHome = position.home;
   const address = position.address;
@@ -133,7 +133,7 @@ const updateFavoriteAsync = async (req, res) => {
     const favTaxiCompany = await companys.taxicompany.find({ "name": newFavorite });
     console.log(favTaxiCompany)
     if (!favTaxiCompany[0]) {
-      throw new serverError('This company is not our partner');
+      throw new requestError('This company is not our partner');
     }
     console.log(newFavorite)
     await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.favoriteCompany": newFavorite } });
@@ -148,5 +148,5 @@ module.exports = {
   orderTaxi: orderTaxi,
   orderHistory: orderHistory,
   updateFavorite: updateFavorite,
-  postPosition: postPosition
+  updatePosition: updatePosition
 };

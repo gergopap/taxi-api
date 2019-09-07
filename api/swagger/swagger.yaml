@@ -53,7 +53,7 @@ paths:
       parameters:
         - name: "credentials"
           in: body
-          description: "Check users username and password"
+          description: "Users username and password"
           required: true
           schema:
             $ref: "#/definitions/Credentials"
@@ -218,11 +218,11 @@ paths:
             $ref: "#/definitions/ErrorResponse"
   /taxi/position:
     x-swagger-router-controller: taxiController
-    post: #put currentposition!!
+    put:
       tags:
       - Taxi
       description: "Send users current position"
-      operationId: postPosition
+      operationId: updatePosition
       parameters:
         - name: "X-Session-ID"
           in: header
@@ -318,6 +318,23 @@ paths:
         "200":
           description: Users favorite company updated
           schema: 
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /health:
+    x-swagger-router-controller: health
+    get:
+      tags:
+      - Health
+      description: Healthcheck
+      operationId: healthcheck
+      security: []
+      responses:
+        "200":
+          description: Success
+          schema:
             type: string
         default:
           description: Error

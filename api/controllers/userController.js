@@ -19,7 +19,7 @@ const signupAsync = async (req, res) => {
             "user.username": user.username
         });
         if (newUser || userName) {
-            throw new requestError('User already exists');
+            throw new requestError('User already exists!');
         }
         user.id = await userdb.user.count() + 1;
         user.favoriteCompany = '';
