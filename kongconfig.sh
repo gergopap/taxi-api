@@ -4,7 +4,7 @@ curl -i -X POST \
   -d 'url=http://ec2-18-220-209-34.us-east-2.compute.amazonaws.com'
 
 curl -X POST \
-  --url http://ec2-18-220-209-34.us-east-2.compute.amazonaws.com:8001/services/taxi/routes \
+  --url http://ec2-18-220-209-34.us-east-2.compute.amazonaws.com:8001/services/taxiapi/routes \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -d 'hosts[]=18.220.209.34'
 
