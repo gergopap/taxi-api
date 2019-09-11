@@ -1,7 +1,7 @@
 "use strict";
 
 const userdb = require("../helpers/models/userModel");
-const companys = require("../helpers/models/companyModel");
+const companies = require("../helpers/models/companyModel");
 const orderdb = require('../helpers/models/orderModel');
 const errorHandler = require("../helpers/errorHandler/errorhandler");
 const { serverError, requestError } = require('../helpers/errorHandler/errors');
@@ -33,7 +33,7 @@ const updatePositionAsync = async (req, res) => {
       location = address.city;
       user.user.currentLocation = address;
     }
-    const localcompanies = await companys.taxicompany.find({ "city": location });
+    const localcompanies = await companies.taxicompany.find({ "city": location });
     if (!localcompanies[0] ) {
       throw new requestError("Sorry, there are not any taxis at your position!");
     }
@@ -68,7 +68,7 @@ const orderTaxiAsync = async (req, res) => {
     }
     order.address = user.user.currentLocation;
 
-    const localcompanies = await companys.taxicompany.find({ "city": order.address.city });
+    const localcompanies = await companies.taxicompany.find({ "city": order.address.city });
     if (!localcompanies) {
       throw new requestError("Sorry, your position is not accessible!");
     }
@@ -83,7 +83,7 @@ const orderTaxiAsync = async (req, res) => {
       };
       let currentCompany = companyNames.filter(checkCompany);
       if(!currentCompany[0]) {
-        throw new requestError("Please choose a company from the avaliable companys!"); 
+        throw new requestError("Please choose a company from the avaliable companies!"); 
       }
     };
 
@@ -130,13 +130,14 @@ function updateFavorite(req, res) {
 const updateFavoriteAsync = async (req, res) => {
   const newFavorite = req.swagger.params["CompanyName"].value;
   try {
-    const favTaxiCompany = await companys.taxicompany.find({ "name": newFavorite });
+    console.log(newFavorite)
+    const favTaxiCompany = await companies.taxicompany.find({ "name": newFavorite.CompanyName });
     console.log(favTaxiCompany)
     if (!favTaxiCompany[0]) {
       throw new requestError('This company is not our partner');
     }
     console.log(newFavorite)
-    await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.favoriteCompany": newFavorite } });
+    await userdb.user.updateMany({ "user.id": req.app.locals.userId }, { $set: { "user.favoriteCompany": newFavorite.CompanyName } });
     res.status(200);
     res.json(newFavorite);
   } catch (e) {

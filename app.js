@@ -4,6 +4,7 @@ var SwaggerExpress = require('swagger-express-mw');
 var app = require('express')();
 const mongoose = require('mongoose');
 const swaggerSecurity = require('./api/helpers/swagger_security.js');
+const seeder = require('./api/helpers/seeder');
 
 const config = {
   appRoot: __dirname,
@@ -25,7 +26,13 @@ SwaggerExpress.create(config, function(err, swaggerExpress) {
   let db = mongoose.connection;
   db.on('error', console.error.bind(console, 'connection error:'));
   db.once('open', function () {
-    taxicompanys
+    try {
+      seeder.seedDb();
+      console.log("Db running!");
+    }
+    catch (e) {
+      console.log(e);
+    }
   });
 });
 

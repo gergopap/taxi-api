@@ -14,7 +14,7 @@ const getCardsAsync = async (req, res) => {
       "userId": req.app.locals.userId
     });
     if (!cards) {
-      throw new serverError("Users cards not found");
+      throw new notFoundError("Users cards not found");
     }
     res.status(200).json(cards.cards);
   } catch (e) {

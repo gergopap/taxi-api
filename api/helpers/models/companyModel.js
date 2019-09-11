@@ -4,7 +4,7 @@ const taxicompanySchema = new mongoose.Schema({
     name: 'String',
     city: 'String'
 },
-    { collection: 'taxicompanys' });
+    { collection: 'taxicompanies' });
 
 let taxicompany = mongoose.model('taxicompany', taxicompanySchema);
 

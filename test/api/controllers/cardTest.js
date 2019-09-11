@@ -152,9 +152,9 @@ describe('cards coontroller test', function () {
     it('should update one of users saved cards, ', async function (done) {
       request(app)
         .put('/cards')
+        .query({ cardNumber: sampleCards.cards[0].number })
         .set('Accept', 'application/json')
         .set('sessionID', sampleSession.id)
-        .set('cardNumber', sampleCards.cards[0].number)
         .send(sampleCard)
         .expect('Content-Type', /json/)
         .expect(200)

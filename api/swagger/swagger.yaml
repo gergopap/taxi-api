@@ -2,6 +2,7 @@ swagger: "2.0"
 info:
   version: "1.0.0"
   title: Taxi Api
+  description: "A simple api to practice Node.js, Swagger, Docker, Kong"
 host: localhost:10010
 basePath: /
 schemes:
@@ -114,6 +115,10 @@ paths:
             type: array
             items:
               $ref: "#/definitions/Cards"
+        "404":
+          description: Users cards not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
         "401":
           description: Unauthorized
           schema:
@@ -194,7 +199,7 @@ paths:
           type: "string"
         - name: "cardNumber"
           description: "Card number of the card to update"
-          in: header
+          in: query
           required: true
           type: "string"
         - name: "newCardData"
@@ -318,13 +323,13 @@ paths:
         "200":
           description: Users favorite company updated
           schema: 
-            type: string
+            $ref: "#/definitions/CompanyName"
         default:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
   /health:
-    x-swagger-router-controller: health
+    x-swagger-router-controller: healthcheck
     get:
       tags:
       - Health

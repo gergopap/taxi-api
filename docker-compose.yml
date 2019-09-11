@@ -1,13 +1,15 @@
 version: '3.5'
 services:
+  swagger-api:
+    container_name: swagger-ui
+    image: swaggerapi/swagger-ui
+    restart: always
   mongo:
     container_name: mongo
     image: mongo
     restart: always
     ports: 
       - '27017:27017'
-    networks:
-      - api
   kong-database:
     image: postgres:9.5
     container_name: kong-database
@@ -15,8 +17,6 @@ services:
       POSTGRES_DB: kong
       POSTGRES_USER: kong
       POSTGRES_PASSWORD: 123456789
-    networks: 
-      - kong
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "kong"]
       interval: 5s
@@ -29,8 +29,6 @@ services:
     environment:
       KONG_PG_HOST: kong-database
       KONG_PG_PASSWORD: 123456789
-    networks: 
-      - kong
     links:
       - kong-database
     depends_on:
@@ -43,7 +41,6 @@ services:
       - kong-database
     ports:
       - 8000:8000
-      - 8443:8443
       - 8001:8001
     environment:
       - KONG_ADMIN_LISTEN=0.0.0.0:8001
@@ -52,9 +49,6 @@ services:
       - KONG_PG_PASSWORD=123456789
       - KONG_PG_SSL=true
       - KONG_PG_SSL_VERIFY=true
-    networks: 
-      - kong
-      - api
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001"]
       interval: 5s
@@ -62,15 +56,13 @@ services:
       retries: 10
 
   taxi-api-1:
-    image: pap133/taxiapi
+    image: pap133/taxi-api2:v1.0.0
     restart: always
     links:
       - mongo
       - kong
     expose:
       - 10010
-    networks:
-      - api
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:10010/health"]
       interval: 5s
@@ -78,21 +70,15 @@ services:
       retries: 10
 
   taxi-api-2:
-    image: pap133/taxiapi
+    image: pap133/taxi-api2:v1.0.0
     restart: always
     links:
       - mongo
       - kong
     expose:
       - 10010
-    networks:
-      - api
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:10010/health"]
       interval: 5s
       timeout: 2s
       retries: 10
-
-networks: 
-  kong
-  api:
