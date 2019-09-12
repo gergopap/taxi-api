@@ -23,13 +23,13 @@ curl -i -X POST \
   --url http://ec2-18-220-209-34.us-east-2.compute.amazonaws.com:8001/upstreams/taxiapi/targets \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -d 'target=taxi-api-1:10010'
-  -d 'weiht=50'
+  -d 'weight=50'
 
 curl -i -X POST \
   --url http://ec2-18-220-209-34.us-east-2.compute.amazonaws.com:8001/upstreams/taxiapi/targets \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -d 'target=taxi-api-2:10010'
-  -d 'weiht=50'
+  -d 'weight=50'
 
 curl -i -X POST \
   --url http://ec2-18-220-209-34.us-east-2.compute.amazonaws.com:8001/consumers/ \
